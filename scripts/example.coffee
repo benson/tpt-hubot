@@ -58,16 +58,13 @@ module.exports = (robot) ->
         str += "##{i+1} #{username}: #{points} " + point_label + newline
      msg.send(str)
 
-  robot.hear /robot/i, (res) ->
-    res.send "yeah, i'm a robot, so what?"
-
-  robot.respond /api shit/i, (res) ->
+  robot.respond /api shit/i, (msg) ->
     robot.http("http://jsonplaceholder.typicode.com/posts/1")
         .get() (err, res, body) ->
           if err
-            res.send "oh shit dat error"
+            msg.send "oh shit dat error"
             return
-          res.send "Got back #{body}"
+          msg.send "Got back #{body}"
   # robot.hear /badger/i, (res) ->
   #   res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS"
   #
