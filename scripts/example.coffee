@@ -32,7 +32,8 @@ module.exports = (robot) ->
 
   robot.hear /!loc (.*)/i, (msg) ->
     user = msg.message.user.name
-    location = msg.match[1]
+    today = new Date()
+    location = msg.match[1] + " as of " + today.toLocaleTimeString + " on " + today.toDateString()
 
     robot.brain.set (user + "_loc"), location
     msg.send user + " is at " + location
