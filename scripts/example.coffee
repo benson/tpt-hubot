@@ -30,6 +30,15 @@ module.exports = (robot) ->
          res += "#{user}-- [ouch! now at #{count}]\n"
      msg.send res.replace(/\s+$/g, '')
 
+  robot.hear /!loc (.*)/i, (msg) ->
+    user = msg.message.user.name
+    location = match[1]
+    today = new Date()
+    # locations = robot.brain.get "locations"
+
+    robot.brain.set (user + "_loc"), location
+    msg.send user + " is at " + location
+
   robot.hear /karma.*leaderboard/i, (msg) ->
      users = robot.brain.data._private
      tuples = []
@@ -55,7 +64,7 @@ module.exports = (robot) ->
         points = tuples[i][1]
         point_label = if points == 1 then "point" else "points"
         newline = if i < Math.min(limit, tuples.length) - 1 then '\n' else ''
-        str += "##{i+1} #{username}: #{points} " + point_label + newline
+        str += "[#{i+1}] #{username}: #{points} " + point_label + newline
      msg.send(str)
 
   robot.respond /api shit/i, (msg) ->
@@ -65,70 +74,7 @@ module.exports = (robot) ->
             msg.send "oh shit dat error"
             return
           msg.send "Got back #{body}"
-  # robot.hear /badger/i, (res) ->
-  #   res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS"
-  #
-  # robot.respond /open the (.*) doors/i, (res) ->
-  #   doorType = res.match[1]
-  #   if doorType is "pod bay"
-  #     res.reply "I'm afraid I can't let you do that."
-  #   else
-  #     res.reply "Opening #{doorType} doors"
-  #
-  # robot.hear /I like pie/i, (res) ->
-  #   res.emote "makes a freshly baked pie"
-  #
-  # lulz = ['lol', 'rofl', 'lmao']
-  #
-  # robot.respond /lulz/i, (res) ->
-  #   res.send res.random lulz
-  #
-  # robot.topic (res) ->
-  #   res.send "#{res.message.text}? That's a Paddlin'"
-  #
-  #
-  # enterReplies = ['Hi', 'Target Acquired', 'Firing', 'Hello friend.', 'Gotcha', 'I see you']
-  # leaveReplies = ['Are you still there?', 'Target lost', 'Searching']
-  #
-  # robot.enter (res) ->
-  #   res.send res.random enterReplies
-  # robot.leave (res) ->
-  #   res.send res.random leaveReplies
-  #
-  # answer = process.env.HUBOT_ANSWER_TO_THE_ULTIMATE_QUESTION_OF_LIFE_THE_UNIVERSE_AND_EVERYTHING
-  #
-  # robot.respond /what is the answer to the ultimate question of life/, (res) ->
-  #   unless answer?
-  #     res.send "Missing HUBOT_ANSWER_TO_THE_ULTIMATE_QUESTION_OF_LIFE_THE_UNIVERSE_AND_EVERYTHING in environment: please set and try again"
-  #     return
-  #   res.send "#{answer}, but what is the question?"
-  #
-  # robot.respond /you are a little slow/, (res) ->
-  #   setTimeout () ->
-  #     res.send "Who you calling 'slow'?"
-  #   , 60 * 1000
-  #
-  # annoyIntervalId = null
-  #
-  # robot.respond /annoy me/, (res) ->
-  #   if annoyIntervalId
-  #     res.send "AAAAAAAAAAAEEEEEEEEEEEEEEEEEEEEEEEEIIIIIIIIHHHHHHHHHH"
-  #     return
-  #
-  #   res.send "Hey, want to hear the most annoying sound in the world?"
-  #   annoyIntervalId = setInterval () ->
-  #     res.send "AAAAAAAAAAAEEEEEEEEEEEEEEEEEEEEEEEEIIIIIIIIHHHHHHHHHH"
-  #   , 1000
-  #
-  # robot.respond /unannoy me/, (res) ->
-  #   if annoyIntervalId
-  #     res.send "GUYS, GUYS, GUYS!"
-  #     clearInterval(annoyIntervalId)
-  #     annoyIntervalId = null
-  #   else
-  #     res.send "Not annoying you right now, am I?"
-  #
-  #
+
   # robot.router.post '/hubot/chatsecrets/:room', (req, res) ->
   #   room   = req.params.room
   #   data   = JSON.parse req.body.payload
