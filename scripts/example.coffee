@@ -13,8 +13,11 @@ module.exports = (robot) ->
   plusplus_re = /([a-z0-9_\-\.]+)\+{2,}/ig
   minusminus_re = /([a-z0-9_\-\.]+)\-{2,}/ig
   plusplus_minusminus_re = /([a-z0-9_\-\.]+)[\+\-]{2,}/ig
-  karma_hash = robot.brain.get "karma_hash" or robot.brain.set "karma_hash", {}
-  locations_hash = robot.brain.get "locations_hash" or robot.brain.set "locations_hash", {}
+  # locations_hash = robot.brain.get "locations_hash" or robot.brain.set "locations_hash", {}
+  # console.log "karma hash = brain get: " + (karma_hash = robot.brain.get "karma_hash")
+  unless karma_hash = robot.brain.get "karma_hash"
+    robot.brain.set("karma_hash", {})
+    karma_hash = robot.brain.get "karma_hash"
 
   robot.hear plusplus_minusminus_re, (msg) ->
     sending_user = msg.message.user.name
@@ -27,8 +30,8 @@ module.exports = (robot) ->
         res += "#{user}++ [nice! now at #{count}]\n"
     while (match = minusminus_re.exec(msg.message))
       user = match[1].replace(/\-+$/g, '')
-      count = (robot.brain.get(user) or 0) - 1
-      robot.brain.set user, count
+      count = (karma_hash[user] or 0) - 1
+      karma_hash[user] = count
       res += "#{user}-- [ouch! now at #{count}]\n"
     msg.send res.replace(/\s+$/g, '')
 
@@ -47,7 +50,7 @@ module.exports = (robot) ->
     msg.send user + " last said they were at " + location
 
   robot.hear /karma.*leaderboard/i, (msg) ->
-     users = robot.brain.data._private
+     users = karma_hash._private
      tuples = []
      for username, score of users
         tuples.push([username, score])
