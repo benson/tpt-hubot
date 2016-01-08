@@ -32,7 +32,8 @@ module.exports = (robot) ->
 
   robot.hear /!loc (.*)/i, (msg) ->
     user = msg.message.user.name
-    location = match[1]
+    location = msg.match[1]
+    msg.send user + " is at " + location
     today = new Date()
     # locations = robot.brain.get "locations"
 
