@@ -33,11 +33,14 @@ module.exports = (robot) ->
   robot.hear /!loc (.*)/i, (msg) ->
     user = msg.message.user.name
     location = msg.match[1]
-    msg.send user + " is at " + location
-    today = new Date()
-    # locations = robot.brain.get "locations"
 
     robot.brain.set (user + "_loc"), location
+    msg.send user + " is at " + location
+
+  robot.hear /!whereis (.*)/i, (msg) ->
+    user = msg.match[1]
+
+    location = robot.brain.get (user + "_loc")
     msg.send user + " is at " + location
 
   robot.hear /karma.*leaderboard/i, (msg) ->
