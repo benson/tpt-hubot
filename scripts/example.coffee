@@ -13,22 +13,24 @@ module.exports = (robot) ->
   plusplus_re = /([a-z0-9_\-\.]+)\+{2,}/ig
   minusminus_re = /([a-z0-9_\-\.]+)\-{2,}/ig
   plusplus_minusminus_re = /([a-z0-9_\-\.]+)[\+\-]{2,}/ig
+  karma_hash = robot.brain.get "karma_hash" or robot.brain.set "karma_hash", {}
+  locations_hash = robot.brain.get "locations_hash" or robot.brain.set "locations_hash", {}
 
   robot.hear plusplus_minusminus_re, (msg) ->
-     sending_user = msg.message.user.name
-     res = ''
-     while (match = plusplus_re.exec(msg.message))
-         user = match[1].replace(/\-+$/g, '')
-         if user != sending_user
-            count = (robot.brain.get(user) or 0) + 1
-            robot.brain.set user, count
-            res += "#{user}++ [nice! now at #{count}]\n"
-     while (match = minusminus_re.exec(msg.message))
-         user = match[1].replace(/\-+$/g, '')
-         count = (robot.brain.get(user) or 0) - 1
-         robot.brain.set user, count
-         res += "#{user}-- [ouch! now at #{count}]\n"
-     msg.send res.replace(/\s+$/g, '')
+    sending_user = msg.message.user.name
+    res = ''
+    while (match = plusplus_re.exec(msg.message))
+      user = match[1].replace(/\-+$/g, '')
+      if user != sending_user
+        count = (karma_hash[user] or 0) + 1
+        karma_hash[user] = count
+        res += "#{user}++ [nice! now at #{count}]\n"
+    while (match = minusminus_re.exec(msg.message))
+      user = match[1].replace(/\-+$/g, '')
+      count = (robot.brain.get(user) or 0) - 1
+      robot.brain.set user, count
+      res += "#{user}-- [ouch! now at #{count}]\n"
+    msg.send res.replace(/\s+$/g, '')
 
   robot.hear /!loc (.*)/i, (msg) ->
     user = msg.message.user.name
