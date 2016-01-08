@@ -15,6 +15,7 @@ module.exports = (robot) ->
   plusplus_minusminus_re = /([a-z0-9_\-\.]+)[\+\-]{2,}/ig
   # locations_hash = robot.brain.get "locations_hash" or robot.brain.set "locations_hash", {}
   robot.hear plusplus_minusminus_re, (msg) ->
+    console.log "another loger"
     console.log "karma hash = brain get: " + (karma_hash = robot.brain.get "karma_hash")
     unless karma_hash = robot.brain.get "karma_hash"
       robot.brain.set("karma_hash", {})
