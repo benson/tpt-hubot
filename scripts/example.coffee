@@ -14,12 +14,12 @@ module.exports = (robot) ->
   minusminus_re = /([a-z0-9_\-\.]+)\-{2,}/ig
   plusplus_minusminus_re = /([a-z0-9_\-\.]+)[\+\-]{2,}/ig
   # locations_hash = robot.brain.get "locations_hash" or robot.brain.set "locations_hash", {}
-  console.log "karma hash = brain get: " + (karma_hash = robot.brain.get "karma_hash")
-  unless karma_hash = robot.brain.get "karma_hash"
-    robot.brain.set("karma_hash", {})
-    karma_hash = robot.brain.get "karma_hash"
-
   robot.hear plusplus_minusminus_re, (msg) ->
+    console.log "karma hash = brain get: " + (karma_hash = robot.brain.get "karma_hash")
+    unless karma_hash = robot.brain.get "karma_hash"
+      robot.brain.set("karma_hash", {})
+      karma_hash = robot.brain.get "karma_hash"
+
     sending_user = msg.message.user.name
     res = ''
     while (match = plusplus_re.exec(msg.message))
