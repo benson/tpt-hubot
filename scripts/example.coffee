@@ -33,7 +33,7 @@ module.exports = (robot) ->
   robot.hear /!loc (.*)/i, (msg) ->
     user = msg.message.user.name
     today = new Date()
-    location = msg.match[1] + " as of " + today.toLocaleTimeString + " on " + today.toDateString()
+    location = msg.match[1] + " as of " + today.toLocaleTimeString()[0..4] + ", " + today.toDateString()[0..9]
 
     robot.brain.set (user + "_loc"), location
     msg.send user + " is at " + location
@@ -42,7 +42,7 @@ module.exports = (robot) ->
     user = msg.match[1]
 
     location = robot.brain.get (user + "_loc")
-    msg.send user + " is at " + location
+    msg.send user + " last said they were at " + location
 
   robot.hear /karma.*leaderboard/i, (msg) ->
      users = robot.brain.data._private
