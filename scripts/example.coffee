@@ -15,8 +15,6 @@ module.exports = (robot) ->
   plusplus_minusminus_re = /([a-z0-9_\-\.]+)[\+\-]{2,}/ig
   # locations_hash = robot.brain.get "locations_hash" or robot.brain.set "locations_hash", {}
   robot.hear plusplus_minusminus_re, (msg) ->
-    console.log "another loger"
-    console.log "karma hash = brain get: " + (karma_hash = robot.brain.get "karma_hash")
     unless karma_hash = robot.brain.get "karma_hash"
       robot.brain.set("karma_hash", {})
       karma_hash = robot.brain.get "karma_hash"
@@ -51,39 +49,40 @@ module.exports = (robot) ->
     msg.send user + " last said they were at " + location
 
   robot.hear /karma.*leaderboard/i, (msg) ->
-     tuples = []
-     for username, score of karma_hash
-        tuples.push([username, score])
+    karma_hash = robot.brain.get "karma_hash"
+    tuples = []
+    for username, score of karma_hash
+       tuples.push([username, score])
 
-     if tuples.length == 0
-        msg.send "No one has any karma yet!"
-        return
+    if tuples.length == 0
+       msg.send "No one has any karma yet!"
+       return
 
-     tuples.sort (a, b) ->
-        if a[1] > b[1]
-           return -1
-        else if a[1] < b[1]
-           return 1
-        else
-           return 0
+    tuples.sort (a, b) ->
+       if a[1] > b[1]
+          return -1
+       else if a[1] < b[1]
+          return 1
+       else
+          return 0
 
-     str = '```'
-     limit = 5
-     for i in [0...Math.min(limit, tuples.length)]
-        username = tuples[i][0]
-        points = tuples[i][1]
-        point_label = if points == 1 then "point" else "points"
-        newline = if i < Math.min(limit, tuples.length) - 1 then '\n' else ''
-        str += "[#{i+1}] #{username}: #{points} " + point_label + newline
-     msg.send(str+'```')
+    str = '```'
+    limit = 5
+    for i in [0...Math.min(limit, tuples.length)]
+      username = tuples[i][0]
+      points = tuples[i][1]
+      point_label = if points == 1 then "point" else "points"
+      newline = if i < Math.min(limit, tuples.length) - 1 then '\n' else ''
+      str += "[#{i+1}] #{username}: #{points} " + point_label + newline
+    msg.send(str+'```')
 
   robot.respond /api shit/i, (msg) ->
     robot.http("http://jsonplaceholder.typicode.com/posts/1")
-        .get() (err, res, body) ->
-          if err
-            msg.send "oh shit dat error"
-            return
-          msg.send "Got back #{body}"
+      .get() (err, res, body) ->
+        if err
+          msg.send "oh shit dat error"
+          return
+        msg.send "Got back #{body}"
 
   # robot.router.post '/hubot/chatsecrets/:room', (req, res) ->
   #   room   = req.params.room
