@@ -50,9 +50,8 @@ module.exports = (robot) ->
     msg.send user + " last said they were at " + location
 
   robot.hear /karma.*leaderboard/i, (msg) ->
-     users = karma_hash._private
      tuples = []
-     for username, score of users
+     for username, score of karma_hash
         tuples.push([username, score])
 
      if tuples.length == 0
