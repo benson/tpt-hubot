@@ -66,7 +66,7 @@ module.exports = (robot) ->
         else
            return 0
 
-     str = ''
+     str = '```'
      limit = 5
      for i in [0...Math.min(limit, tuples.length)]
         username = tuples[i][0]
@@ -74,7 +74,7 @@ module.exports = (robot) ->
         point_label = if points == 1 then "point" else "points"
         newline = if i < Math.min(limit, tuples.length) - 1 then '\n' else ''
         str += "[#{i+1}] #{username}: #{points} " + point_label + newline
-     msg.send(str)
+     msg.send(str+'```')
 
   robot.respond /api shit/i, (msg) ->
     robot.http("http://jsonplaceholder.typicode.com/posts/1")
