@@ -1,5 +1,7 @@
 Conversation = require 'hubot-conversation'
+
 data_requests = ['GMV', 'Users', 'Products']
+api_url = "http://tpt-api-hack.awesome-labs.com/"
 
 validDate = (date) ->
   if Object.prototype.toString.call(date) == "[object Date]"
@@ -22,6 +24,7 @@ humanReadableDate = (date) ->
 module.exports = (robot) ->
   switchboard = new Conversation(robot)
 
+
   robot.respond /.*data.*request/i, (msg) ->
     dialog = switchboard.startDialog(msg)
 
@@ -42,9 +45,10 @@ module.exports = (robot) ->
       )
       dialog.addChoice(/2/i, (msg3) ->
         msg.send "Which month would you like the GMV for?"
-        dialog.addChoice(/(\d{4})/i, (msg4) ->
-          year = msg4.match[1]
-          msg.send "The GMV for #{year} is ```_____```"
+        datepicker(dialog, (date) =>
+          # get data using that date here
+          month = date.getMonth()
+          msg.send "The GMV for #{humanReadableDate(date)} is ```_____```"
         )
       )
       dialog.addChoice(/3/i, (msg3) ->
@@ -71,9 +75,36 @@ module.exports = (robot) ->
       msg.reply "Products - great choice!"
     )
 
-    # robot.http("http://jsonplaceholder.typicode.com/posts/1")
-      # .get() (err, res, body) ->
-        # if err
-          # msg.send "oh shit dat error"
-          # return
-        # msg.send "Got back #{body}"
+  robot.respond /.*queries.*/i, (msg) ->
+    dialog = switchboard.startDialog(msg)
+
+    robot.http(api_url + "api/queries")
+      .get() (err, res, body) ->
+        if err
+          msg.send "Error: #{err}"
+          return
+        data = JSON.parse(body)
+        to_send = "_Available queries:_ ```"
+        for query, i in data
+          to_send = to_send + "\n [#{i}] #{query.name}"
+          to_send = to_send + "\n\t #{query.description}"
+        msg.send to_send + "```"
+
+        dialog.addChoice(/(\d{1,3})/i, (msg2) ->
+          selection = msg2.match[1]
+          msg.send "_You chose *#{data[selection].name}*. Your query is running..._:wall:"
+          url = api_url + "api/queries/#{data[selection]._id}"
+          results_url = api_url + "queries/#{data[selection]._id}"
+          robot.http(url)
+            .header('Content-Type', 'application/json')
+            .post() (err, res, body) ->
+              if err
+                msg.send "Error: #{err}"
+                return
+              msg.send "_Query is done running! Check out the results here:_ \n ```" + results_url + "```"
+              # data = JSON.parse(body)
+              # to_send = ""
+              # for item in data
+                # to_send = to_send + "\n ```#{JSON.stringify(item)}```"
+              # msg.send "```" + to_send + "```"
+        )
