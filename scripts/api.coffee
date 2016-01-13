@@ -111,10 +111,14 @@ module.exports = (robot) ->
             to_send = to_send + "\n [#{i+1}] #{user}"
           msg.send "```" + to_send + '```'
           dialog.addChoice(/\d{1,3}/i, (msg3) ->
-
+            user = users[i-1]
+            if user
+              user_queries = queries.filter (query) -> query.author.username is user
+              querypicker(dialog, "'made by #{user}'", user_queries, msg, robot)
+            else
+              msg.send "That wasn't one of the options."
           )
 
-          querypicker(dialog, "most recent", most_recent, msg, robot)
         )
 
   # robot.respond /.*queries.*/i, (msg) ->
