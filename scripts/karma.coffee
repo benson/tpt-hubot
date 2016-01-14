@@ -1,5 +1,4 @@
 module.exports = (robot) ->
-  botname = process.env.HUBOT_SLACK_BOTNAME
   plusplus_re = /([a-z0-9_\-\.]+)\+{2,}/ig
   minusminus_re = /([a-z0-9_\-\.]+)\-{2,}/ig
   plusplus_minusminus_re = /([a-z0-9_\-\.]+)[\+\-]{2,}/ig
@@ -53,4 +52,3 @@ module.exports = (robot) ->
       newline = if i < Math.min(limit, tuples.length) - 1 then '\n' else ''
       str += "[#{i+1}] #{username}: #{points} " + point_label + newline
     msg.send(str+'```')
-

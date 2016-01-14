@@ -19,17 +19,6 @@ datepicker = (dialog, success) ->
       datepicker(dialog, success)
   )
 
-# paramsetter = (params, success, msg) ->
-  # dialog.addChoice(/(.*)/i, (msg2) ->
-    # date = new Date(msg2.match[1])
-    # if validDate(date)
-      # success(date)
-    # else
-      # msg.send "That date doesn't seem to be valid. Try formatting it like this: ```MM/DD/YYYY```"
-      # datepicker(dialog, success)
-  # )
-
-
 humanReadableDate = (date) ->
   "#{date.getMonth()+1}/#{date.getDate()}/#{date.getFullYear()} #{date.toLocaleTimeString()[..-7]} #{date.toLocaleTimeString()[-2..]}"
 
@@ -39,7 +28,6 @@ removeDuplicates = (ar) ->
   res = {}
   res[ar[key]] = ar[key] for key in [0..ar.length-1]
   value for key, value of res
-
 
 querypicker = (dialog, name, queries, msg, robot) ->
   to_send = "_Available #{name} queries:_ ```"
@@ -55,7 +43,6 @@ querypicker = (dialog, name, queries, msg, robot) ->
       return
     msg.send "_You chose *#{selected_query.name}*_"
     url = api_url + "/api/queries/#{selected_query.id}"
-    results_url = api_url + "/queries/#{selected_query.id}"
     robot.http(url)
       .header('Authorization', "token #{token}")
       .get() (err, res, body) ->
@@ -84,10 +71,8 @@ runQuery = (dialog, msg, robot, url, params) ->
   if params.length
     msg.send "_This query has some params you need to set (and I can't do that yet) so try doing it through the web:_"
     msg.send url.replace("/api", "")
-    # user_params = {}
-    # for param in params
   else
-    msg.send "_Running query..._ :wall"
+    msg.send "_Running query..._ :wall:"
     robot.http(url)
       .header('Authorization', "token #{token}")
       .post() (err, res, body) ->
@@ -98,10 +83,8 @@ runQuery = (dialog, msg, robot, url, params) ->
         # response = JSON.parse(body)
         # execution = response[0].executions.recent[0]
         # msg.send "_Query is done running! Check out the results here:_ \n ```#{api_url}/queries/#{selected_query.id}/executions/#{execution.id}\n"
-        msg.send "This will be a link to the results page!!!!!!!"
+        msg.send "This will be a link to the results page"
 
-
-# ================================================================
 module.exports = (robot) ->
   switchboard = new Conversation(robot)
 
@@ -155,7 +138,7 @@ module.exports = (robot) ->
           dialog.addChoice(/\d{1,3}/i, (msg3) ->
             user = users[i-1]
             unless user
-              msg.send "That wasn't one of the options."
+              msg.send "_That wasn't one of the options._"
               return
             user_queries = queries.filter (query) -> query.author.username is user
             querypicker(dialog, "'made by #{user}'", user_queries, msg, robot)
