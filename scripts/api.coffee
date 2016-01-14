@@ -1,7 +1,6 @@
 Conversation = require 'hubot-conversation'
 
-# api_url = "http://tpt-api-hack.awesome-labs.com"
-api_url = "http://localhost:3000"
+api_url = "http://tpt-api-hack.owj5.flynnhub.com"
 token = "40fc7d904b7bcb1a7940a93d19f4193ccf997367e809f7847ced8474d9bb1028091cc1f2b0edad6279b5ff7c44dd408dde6b5c701a3ffcb148bcd78e64c076b6"
 
 validDate = (date) ->
@@ -72,75 +71,128 @@ runQuery = (dialog, msg, robot, url, params) ->
     msg.send "_This query has some params you need to set (and I can't do that yet) so try doing it through the web:_"
     msg.send url.replace("/api", "")
   else
-    msg.send "_Running query..._ :wall:"
     robot.http(url)
       .header('Authorization', "token #{token}")
       .post() (err, res, body) ->
         if err
           msg.send "Error: #{err}"
           return
-        # TODO: uncomment this stuff when the endpoint returns this data
-        # response = JSON.parse(body)
-        # execution = response[0].executions.recent[0]
-        # msg.send "_Query is done running! Check out the results here:_ \n ```#{api_url}/queries/#{selected_query.id}/executions/#{execution.id}\n"
-        msg.send "This will be a link to the results page"
+        response = JSON.parse(body)
+        msg.send "_Results available here:_ \n ```#{api_url + response.url}```"
+
+browseQueries = (msg, robot) ->
+  switchboard = new Conversation(robot)
+  dialog = switchboard.startDialog(msg)
+
+  robot.http(api_url + "/api/queries")
+    .header('Authorization', "token #{token}")
+    .get() (err, res, body) ->
+      if err
+        msg.send "Error: #{err}"
+        return
+      queries = JSON.parse(body)
+
+      msg.send "```How would you like to browse queries?\n[1] Category \n[2] Most Recent \n[3] User ```"
+
+      dialog.addChoice(/category|1/i, (msg2) ->
+        gmv_queries     = queries.filter (query) -> query.category is "gmv"
+        user_queries    = queries.filter (query) -> query.category is "users"
+        product_queries = queries.filter (query) -> query.category is "products"
+
+        to_send = "Which category are you interested in?"
+        for request, i in ['GMV', 'Users', 'Products']
+          to_send = to_send + "\n [#{i+1}] #{request}"
+        msg.send "```" + to_send + '```'
+
+        dialog.addChoice(/GMV|1/i, (msg2) ->
+          querypicker(dialog, "GMV", gmv_queries, msg, robot)
+        )
+        dialog.addChoice(/user|2/i, (msg2) ->
+          querypicker(dialog, "user", user_queries, msg, robot)
+        )
+        dialog.addChoice(/product|3/i, (msg2) ->
+          querypicker(dialog, "product", product_queries, msg, robot)
+        )
+      )
+
+      dialog.addChoice(/most recent|2/i, (msg2) ->
+        most_recent = queries.sort (a, b) ->
+          a.created < b.created
+        querypicker(dialog, "most recent", most_recent, msg, robot)
+      )
+
+      dialog.addChoice(/by user|3/i, (msg2) ->
+        # user stuff here
+        users = removeDuplicates(query.author.username for query in queries)
+        to_send = "Which user?"
+        for user, i in users
+          to_send = to_send + "\n [#{i+1}] #{user}"
+        msg.send "```" + to_send + '```'
+        dialog.addChoice(/\d{1,3}/i, (msg3) ->
+          user = users[i-1]
+          unless user
+            msg.send "_That wasn't one of the options._"
+            return
+          user_queries = queries.filter (query) -> query.author.username is user
+          querypicker(dialog, "'made by #{user}'", user_queries, msg, robot)
+        )
+      )
 
 module.exports = (robot) ->
-  switchboard = new Conversation(robot)
 
   robot.respond /.*data.*|.*queries.*|.*query.*/i, (msg) ->
-    dialog = switchboard.startDialog(msg)
+    browseQueries(msg, robot)
 
-    robot.http(api_url + "/api/queries")
-      .header('Authorization', "token #{token}")
-      .get() (err, res, body) ->
-        if err
-          msg.send "Error: #{err}"
-          return
-        queries = JSON.parse(body)
+    # robot.http(api_url + "/api/queries")
+      # .header('Authorization', "token #{token}")
+      # .get() (err, res, body) ->
+        # if err
+          # msg.send "Error: #{err}"
+          # return
+        # queries = JSON.parse(body)
 
-        msg.send "```How would you like to browse queries?\n[1] Category \n[2] Most Recent \n[3] User ```"
+        # msg.send "```How would you like to browse queries?\n[1] Category \n[2] Most Recent \n[3] User ```"
 
-        dialog.addChoice(/category|1/i, (msg2) ->
-          gmv_queries     = queries.filter (query) -> query.category is "gmv"
-          user_queries    = queries.filter (query) -> query.category is "users"
-          product_queries = queries.filter (query) -> query.category is "products"
+        # dialog.addChoice(/category|1/i, (msg2) ->
+          # gmv_queries     = queries.filter (query) -> query.category is "gmv"
+          # user_queries    = queries.filter (query) -> query.category is "users"
+          # product_queries = queries.filter (query) -> query.category is "products"
 
-          to_send = "Which category are you interested in?"
-          for request, i in ['GMV', 'Users', 'Products']
-            to_send = to_send + "\n [#{i+1}] #{request}"
-          msg.send "```" + to_send + '```'
+          # to_send = "Which category are you interested in?"
+          # for request, i in ['GMV', 'Users', 'Products']
+            # to_send = to_send + "\n [#{i+1}] #{request}"
+          # msg.send "```" + to_send + '```'
 
-          dialog.addChoice(/GMV|1/i, (msg2) ->
-            querypicker(dialog, "GMV", gmv_queries, msg, robot)
-          )
-          dialog.addChoice(/user|2/i, (msg2) ->
-            querypicker(dialog, "user", user_queries, msg, robot)
-          )
-          dialog.addChoice(/product|3/i, (msg2) ->
-            querypicker(dialog, "product", product_queries, msg, robot)
-          )
-        )
+          # dialog.addChoice(/GMV|1/i, (msg2) ->
+            # querypicker(dialog, "GMV", gmv_queries, msg, robot)
+          # )
+          # dialog.addChoice(/user|2/i, (msg2) ->
+            # querypicker(dialog, "user", user_queries, msg, robot)
+          # )
+          # dialog.addChoice(/product|3/i, (msg2) ->
+            # querypicker(dialog, "product", product_queries, msg, robot)
+          # )
+        # )
 
-        dialog.addChoice(/most recent|2/i, (msg2) ->
-          most_recent = queries.sort (a, b) ->
-            a.created < b.created
-          querypicker(dialog, "most recent", most_recent, msg, robot)
-        )
+        # dialog.addChoice(/most recent|2/i, (msg2) ->
+          # most_recent = queries.sort (a, b) ->
+            # a.created < b.created
+          # querypicker(dialog, "most recent", most_recent, msg, robot)
+        # )
 
-        dialog.addChoice(/by user|3/i, (msg2) ->
-          # user stuff here
-          users = removeDuplicates(query.author.username for query in queries)
-          to_send = "Which user?"
-          for user, i in users
-            to_send = to_send + "\n [#{i+1}] #{user}"
-          msg.send "```" + to_send + '```'
-          dialog.addChoice(/\d{1,3}/i, (msg3) ->
-            user = users[i-1]
-            unless user
-              msg.send "_That wasn't one of the options._"
-              return
-            user_queries = queries.filter (query) -> query.author.username is user
-            querypicker(dialog, "'made by #{user}'", user_queries, msg, robot)
-          )
-        )
+        # dialog.addChoice(/by user|3/i, (msg2) ->
+          # # user stuff here
+          # users = removeDuplicates(query.author.username for query in queries)
+          # to_send = "Which user?"
+          # for user, i in users
+            # to_send = to_send + "\n [#{i+1}] #{user}"
+          # msg.send "```" + to_send + '```'
+          # dialog.addChoice(/\d{1,3}/i, (msg3) ->
+            # user = users[i-1]
+            # unless user
+              # msg.send "_That wasn't one of the options._"
+              # return
+            # user_queries = queries.filter (query) -> query.author.username is user
+            # querypicker(dialog, "'made by #{user}'", user_queries, msg, robot)
+          # )
+        # )
