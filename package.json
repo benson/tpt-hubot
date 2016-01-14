@@ -17,5 +17,8 @@
   },
   "engines": {
     "node": "0.10.x"
+  },
+  "scripts": {
+    "start": "HUBOT_SLACK_TOKEN=xoxb-18051106695-UksoLTSNegjjbiSqkIcgZlQu ./bin/hubot --adapter slack"
   }
 }
